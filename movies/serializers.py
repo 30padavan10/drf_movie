@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Movie, Review, Rating
+from .models import Movie, Review, Rating, Actor
 
 
 # сериализаторы нужны чтобы преобразовывать типы данных питон в тип данных json и наоборот
@@ -35,14 +35,30 @@ class RecursiveSerializer(serializers.Serializer):
         return serializer.data
 
 
+class ActorsListSerializer(serializers.ModelSerializer):
+    """Вывод списка актеров и режиссеров"""
+    class Meta:
+        model = Actor
+        fields = ("id", "name", "image")
+
+
+class ActorDetailSerializer(serializers.ModelSerializer):
+    """Вывод данных об актере и режиссере"""
+    class Meta:
+        model = Actor
+        fields = "__all__"
+
+
 class MovieListSerializer(serializers.ModelSerializer):
     """Список фильмов"""
     rating_user = serializers.BooleanField()  # в MovieListView добавили к модели Movie поле rating_user здесь можно
     # его сериализовать вместе с остальными полями
+    #middle_star = serializers.IntegerField() # вариант для целых значений когда Sum делим на Count
+    middle_star = serializers.FloatField()    # вариант для дробных значений когда Avg
 
     class Meta:
         model = Movie
-        fields = ("title", "tagline", "category", "rating_user") # в таком варианте для category отображается id, а не название
+        fields = ("id", "title", "tagline", "category", "rating_user", "middle_star") # в таком варианте для category отображается id, а не название
 
 
 
@@ -70,9 +86,17 @@ class ReviewSerializer(serializers.ModelSerializer):
 class MovieDetailSerializer(serializers.ModelSerializer):
     """Полный фильм"""
     category = serializers.SlugRelatedField(slug_field="name", read_only=True)  # slug_field="name" указывает какое
-    # поле выводить вместо id, read_only=True - поле только для чтения
-    directors = serializers.SlugRelatedField(slug_field="name", read_only=True, many=True)
-    actors = serializers.SlugRelatedField(slug_field="name", read_only=True, many=True)
+    # поле выводить вместо id, оно будет выводиться только одно, read_only=True - поле только для чтения
+
+    # directors = serializers.SlugRelatedField(slug_field="name", read_only=True, many=True)
+    directors = ActorDetailSerializer(read_only=True, many=True)
+    # actors = serializers.SlugRelatedField(slug_field="name", read_only=True, many=True)
+    actors = ActorsListSerializer(read_only=True, many=True)
+    # меняем сериализатор с serializers.SlugRelatedField на ActorDetailSerializer, то выводятся
+    # все данные актеров, если же меняем на ActorsListSerializer, то выводятся поля указанные в ActorsListSerializer
+
+
+
     genres = serializers.SlugRelatedField(slug_field="name", read_only=True, many=True)
     ################# без реализации ниже отзывы не выводятся
     #reviews = ReviewCreateSerializer(many=True)  # без related_name="reviews" в поле movie модели Review отзывы
