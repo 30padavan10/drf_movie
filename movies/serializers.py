@@ -118,7 +118,17 @@ class CreateRatingSerializer(serializers.ModelSerializer):
         fields = ("star", "movie")
 
     def create(self, validated_data):
-        rating = Rating.objects.update_or_create(
+        # rating = Rating.objects.update_or_create(
+        #     ip=validated_data.get('ip', None),
+        #     movie=validated_data.get('movie', None),
+        #     defaults={'star': validated_data.get('star')}
+        # )
+        # При отправке json {"star":2, "movie":1} метод update_or_create возвращает кортеж (объект,
+        # True/False - создалась или обновилась запись) (<Rating: 2 - Терминатор>, False) данный вариант работает
+        # когда используем APIView и метод post
+        # но при использовании CreateAPIView возниканиет ошибка связанная с кортежем, поэтому разделим кортеж на
+        # переменные
+        rating, _ = Rating.objects.update_or_create(
             ip=validated_data.get('ip', None),
             movie=validated_data.get('movie', None),
             defaults={'star': validated_data.get('star')}

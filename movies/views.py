@@ -3,7 +3,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
 
-from .service import get_client_ip
+from django_filters.rest_framework import DjangoFilterBackend
+
+from .service import get_client_ip, MovieFilter
 
 from .models import Movie, Actor
 from .serializers import (
@@ -61,6 +63,12 @@ class MovieListView(generics.ListAPIView):
     """Вывод списка фильмов с помощью generics класса"""
     serializer_class = MovieListSerializer
 
+    filter_backends = (DjangoFilterBackend, )   # подключаем фильтры, для этого нужно установить библиотеку
+    # django-filter, добавить в Installed apps, также в settings указать default filter
+    filterset_class = MovieFilter
+    # по запросу /api/v1/movie/?year_min=1890&year_max=2000&genres=Боевик,Приключения будут выводиться фильмы
+    # попадающие под указанные параметры
+
     def get_queryset(self):
         """В данном случае используем метод get_queryset вместо атрибута queryset т.к. нужно добраться до
         self.request иначе можно было бы спокойно использовать queryset"""
@@ -71,33 +79,54 @@ class MovieListView(generics.ListAPIView):
         )
         return movies
 
-class MovieDetailView(APIView):
+# class MovieDetailView(APIView):
+#     """Вывод фильма"""
+#     def get(self, request, pk):
+#         movie = Movie.objects.get(id=pk, draft=False)
+#         serializer = MovieDetailSerializer(movie)
+#         return Response(serializer.data)
+
+class MovieDetailView(generics.RetrieveAPIView):
     """Вывод фильма"""
-    def get(self, request, pk):
-        movie = Movie.objects.get(id=pk, draft=False)
-        serializer = MovieDetailSerializer(movie)
-        return Response(serializer.data)
+    queryset = Movie.objects.filter(draft=False)  # вместо метода get и id=pk здесь используем queryset и метод filter,
+    # а класс RetrieveAPIView будет сам находить по pk нужную запись
+    serializer_class = MovieDetailSerializer
 
 
-class ReviewCreateView(APIView):
+# class ReviewCreateView(APIView):
+#     """Добавление отзыва к фильму"""
+#     def post(self, request):
+#         review = ReviewCreateSerializer(data=request.data)
+#         if review.is_valid():
+#             review.save()
+#         return Response(status=201)
+
+
+class ReviewCreateView(generics.CreateAPIView):
     """Добавление отзыва к фильму"""
-    def post(self, request):
-        review = ReviewCreateSerializer(data=request.data)
-        if review.is_valid():
-            review.save()
-        return Response(status=201)
+    serializer_class = ReviewCreateSerializer   # в таком варианте джанго предлагаем ввод отзыва 2-мя способами:
+    # raw data - как и раньше чистым json, html form - в виде формы
 
 
-class AddStarRatingView(APIView):
+# class AddStarRatingView(APIView):
+#     """Добавление рейтинга фильму"""
+#
+#     def post(self, request):
+#         serializer = CreateRatingSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save(ip=get_client_ip(request))
+#             return Response(status=201)
+#         else:
+#             return Response(status=400)
+
+class AddStarRatingView(generics.CreateAPIView):
     """Добавление рейтинга фильму"""
+    serializer_class = CreateRatingSerializer
 
-    def post(self, request):
-        serializer = CreateRatingSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(ip=get_client_ip(request))
-            return Response(status=201)
-        else:
-            return Response(status=400)
+    def perform_create(self, serializer):
+        """для того чтобы передать сериализатору ip используем этот метод. Данный метод позволяет передавать в
+         метод save сериализатора дополнительные параметры"""
+        serializer.save(ip=get_client_ip(self.request))
 
 
 class ActorsListView(generics.ListAPIView):
