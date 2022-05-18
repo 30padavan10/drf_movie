@@ -96,7 +96,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'drf_movie',
         'USER': 'postgres',
-        'PASSWORD': 'qaz', #'123456'
+        'PASSWORD': '123456',#'qaz',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -229,6 +229,28 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
+
+
+# smtp
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'xxxxx@gmail.com'
+EMAIL_HOST_PASSWORD = 'xxxx'
+EMAIL_PORT = 587
+# для регистрации пользователя через емейл нужно:
+# в настройках аккаунта гугл должен быть включен доступ с небезопасных приложений
+# в настройках почты должен быть включен отправка imap
+# http://127.0.0.1:8000/auth/users/ в body указываем параметры username, password, email
+# на указанный email приходит письмо со ссылкой на активацию, если по ней переходить то выполняется get запрос
+# и нужен фронтенд который обработает это запрос и отправит post запрос на http://127.0.0.1:8000/auth/users/activation/
+# т.к. фронта тут нет используем postman, в нем отправляем post запрос как выше с параметрами в body:
+# uid - это значение в ссылке после activate
+# token - это значение в ссылке после uid
+# респонса никакого не небудет
+# после этого отправляем post запрос http://127.0.0.1:8000/auth/token/login и получаем auth_token
+# после можем отправлять get запрос с нужной страницей и в заголовке Autorization передавать данный токен
+
+
 
 
 DJOSER = {
