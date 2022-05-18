@@ -1,7 +1,7 @@
 from django.db import models
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import generics
+from rest_framework import generics, permissions
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -68,6 +68,14 @@ class MovieListView(generics.ListAPIView):
     filterset_class = MovieFilter
     # по запросу /api/v1/movie/?year_min=1890&year_max=2000&genres=Боевик,Приключения будут выводиться фильмы
     # попадающие под указанные параметры
+    permission_classes = [permissions.IsAuthenticated]  # теперь данную страницу могут просматривать только авториз
+    # для получения токена в postman переходим по ссылке http://127.0.0.1:8000/auth/token/login в тело запроса(body)
+    # указываем ключ - username, значение - имя пользователя, ключ password, значение пароль
+    # в ответе вернется ключ auth_token со значением токена, токен добавляется в БД.
+    # Теперь для открытия данной страницы в заголовки(headers)
+    # добавляем ключ Authorization значение Token <полученный токен>. Без токена вернется ошибка авторизации.
+    # Для разлогирования отправляем запрос на http://127.0.0.1:8000/auth/token/logout
+    # добавляем ключ Authorization значение Token <полученный токен>. и данный токен удаляется из БД.
 
     def get_queryset(self):
         """В данном случае используем метод get_queryset вместо атрибута queryset т.к. нужно добраться до
