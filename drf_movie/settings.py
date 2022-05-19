@@ -44,8 +44,18 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',  # добавляем вместе с djoser
     'ckeditor',
     'ckeditor_uploader',
-    'django_filters',
+    'django_filters',   # нужен pip install django-filter
     'djoser',
+    'drf_yasg',  # нужен pip install drf-yasg
+    # это динамическая документация со ссылками на все api проекта, в ней же можно отправлять запросы, в том числе
+    # и с авторизацией по токенам, для этого дополнительно прописаны SWAGGER_SETTINGS
+
+    'oauth2_provider',               # для всего этого нужен
+    'social_django',                 # pip install django-rest-framework-social-oauth2
+    'rest_framework_social_oauth2',  # эта библиотека основана на библиотеках toolkit и social
+    # также нужны переменные SOCIAL_AUTH_VK_OAUTH2_KEY SOCIAL_AUTH_VK_OAUTH2_SECRET
+
+    # from django.utils.encoding import force_text
 
     'movies',
 ]
@@ -96,7 +106,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'drf_movie',
         'USER': 'postgres',
-        'PASSWORD': '123456',#'qaz',
+        'PASSWORD': 'qaz',#'123456',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -219,6 +229,16 @@ CKEDITOR_CONFIGS = {
     }
 }
 
+SOCIAL_AUTH_VK_OAUTH2_KEY = '7363441'
+SOCIAL_AUTH_VK_OAUTH2_SECRET = 'tGZ3sAGJeEA46Odcmb6N'
+
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.vk.VKOAuth2',
+    'rest_framework_social_oauth2.backends.DjangoOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
             'rest_framework.authentication.TokenAuthentication',
@@ -226,11 +246,16 @@ REST_FRAMEWORK = {
             # выполнить миграции чтобы в бд создалась таблица с токенами, в ней будет храниться токен для каждого
             # пользователя
             # для JWT токенов бд не используется и они нигде не хранятся
+            #'rest_framework.authentication.SessionAuthentication',  # после настройки авторизации по токенам открыть
+            # страницу средствами реста в браузере без токена не получается, чтобы открывалась без токена нужна
+            # аутентификация по сессии
+            'oauth2_provider.contrib.rest_framework.OAuth2Authentication',       # нужна для аутентиф через соц сеть
+            'rest_framework_social_oauth2.authentication.SocialAuthentication',  # нужна для аутентиф через соц сеть
     ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
-
+from rest_framework_social_oauth2 import authentication
 # smtp
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
@@ -289,9 +314,18 @@ SIMPLE_JWT = {
 }
 
 
-
-
-
+SWAGGER_SETTINGS = {
+   'SECURITY_DEFINITIONS': {
+      'Basic': {
+            'type': 'basic'
+      },
+      'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+      }
+   }
+}
 
 
 
