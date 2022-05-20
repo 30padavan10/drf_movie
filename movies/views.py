@@ -5,7 +5,7 @@ from rest_framework import generics, permissions, viewsets
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .service import get_client_ip, MovieFilter
+from .service import get_client_ip, MovieFilter, PaginationMovies
 
 from .models import Movie, Actor
 from .serializers import (
@@ -87,6 +87,9 @@ from .serializers import (
 #         )
 #         return movies
 
+
+
+
 # переписываем вывод фильмов с помощью viewsets
 class MovieViewSet(viewsets.ReadOnlyModelViewSet):
     """Вывод списка фильмов и полного фильма с помощью viewset класса"""
@@ -94,6 +97,8 @@ class MovieViewSet(viewsets.ReadOnlyModelViewSet):
 
     filter_backends = (DjangoFilterBackend,)    # аналогично использованию
     filterset_class = MovieFilter               # в generics классе
+    permission_classes = [permissions.IsAuthenticated]
+    #pagination_class = PaginationMovies
 
     # а вот serializer_class был разный в MovieListView и MovieDetailView поэтому переопределяем метод
     def get_serializer_class(self):

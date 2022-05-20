@@ -58,12 +58,18 @@ INSTALLED_APPS = [
     # не работает с Django 4, т.к. пытается выполнить from django.utils.encoding import force_text а в Django 4
     # вместо force_text используется force_str
 
-'movies',
+    'corsheaders',  # pip install django-cors-headers, добавляем 'corsheaders.middleware.CorsMiddleware',
+    # и переменную CORS_ORIGIN_WHITELIST
+    # Данная библиотека нам позволит добавлять к ответам заголовки Cross-Origin Resource Sharing (CORS).
+    # Это позволяет запросы в браузере к нашему приложению Django из других источников.
+
+    'movies',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -107,7 +113,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'drf_movie',
         'USER': 'postgres',
-        'PASSWORD': '123456',#'qaz',
+        'PASSWORD': 'qaz',#'123456',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -161,6 +167,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [STATIC_DIR]
+
+
+CORS_ORIGIN_WHITELIST = [
+    "http://localhost:8080",
+    "http://127.0.0.1:8000"
+]
+
 
 
 CKEDITOR_UPLOAD_PATH = 'uploads/'
@@ -254,7 +267,10 @@ REST_FRAMEWORK = {
             # 'rest_framework_social_oauth2.authentication.SocialAuthentication',  # нужна для аутентиф через соц сеть
 
     ),
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    # 'PAGE_SIZE': 1  # количество элементов на странице по умолчанию
 }
 
 

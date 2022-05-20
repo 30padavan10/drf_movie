@@ -1,6 +1,37 @@
 from django_filters import rest_framework as filters
+from rest_framework.response import Response
 
 from .models import Movie
+
+from rest_framework.pagination import PageNumberPagination
+
+class PaginationMovies(PageNumberPagination):
+    """Меняет количество выводимых записей отлично от дефолтной настройки"""
+    page_size = 2         # количество записей на странице
+    max_page_size = 1000  # максимальное количество записей
+
+    def get_paginated_response(self, data):
+        """с помощью даннного метода можно изменять вид респонза с пагинацией"""
+        # до переопределения метода
+        # "count": 2,
+        #   "next": null,
+        #   "previous": null,
+        #   "results": []
+        # после переопределения метода
+        # "links": {
+        #     "next": null,
+        #     "previous": null
+        #   },
+        #   "count": 2,
+        #   "results": []
+        return Response({
+            'links': {
+                'next': self.get_next_link(),
+                'previous': self.get_previous_link()
+            },
+            'count': self.page.paginator.count,
+            'results': data
+        })
 
 
 def get_client_ip(request):
